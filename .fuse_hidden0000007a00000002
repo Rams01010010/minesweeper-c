@@ -1,0 +1,3 @@
+#!/bin/bash
+cc minesweeper.c -o minesweeper
+./minesweeper
