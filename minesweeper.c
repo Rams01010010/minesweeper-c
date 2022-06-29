@@ -46,9 +46,9 @@ void quesGen()
       }
      }
     }
-    mineLayout[i][j] = (mineCount != 0) ? 48+mineCount : '-';
+    mineLayout[i][j] = (mineCount != 0) ? 48+mineCount : '~';
    }
-   groundLayout[i][j] = mineLayout[i][j];
+   groundLayout[i][j] = ' ';
   }
  }
 }
@@ -57,8 +57,7 @@ void displayBoard()
 {
  int i,j;
  system("clear");
- printf("      ");
-
+ printf("\n      ");
  for(i = 0; i < colSize; i++)
  	printf("%2d  ",i);
  printf("\n");
@@ -89,11 +88,50 @@ void operateMine(char op,int r,int c)
   groundLayout[r][c] = 'f';
  else if(op == 'd' && groundLayout[r][c] == ' ')
  {
-  groundLayout[r][c] = mineLayout[r][c];
+  if(mineLayout[r][c] == '~')
+  {
+   openEmptySpots(r,c);
+  }
+  else
+  {
+   groundLayout[r][c] = mineLayout[r][c];
+  }
  }
  displayBoard(); 
 }
 
+void openEmptySpots(int r, int c)
+{
+ if(!(mineLayout[r][c] == '~' || mineLayout[r][c] == '-'))
+ {
+  return;
+ }
+ else
+ {
+  int rmx,rmy,cmx,cmy,x,y,mineCount=0;
+  rmx = (r == 0) ? r : r-1;
+  rmy = (r == (rowSize-1)) ? (rowSize-1) : r+1;
+  cmx = (c == 0) ? c : c-1;
+  cmy = (c == (colSize-1)) ? (colSize-1) : c+1;
+  mineLayout[r][c] = '-';
+  groundLayout[r][c] = '-';
+  for(x = rmx; x <= rmy; x++)
+  {
+   for(y = cmx; y <= cmy; y++)
+   {
+    if(mineLayout[x][y] == '~' &&  !(x==r && y==c))
+    {
+     openEmptySpots(x,y);
+    }
+    else
+    {
+     groundLayout[x][y] = mineLayout[x][y];
+    }
+   }
+  }
+ }
+}
+ 
 int main()
 {
  char ch;
@@ -109,16 +147,23 @@ int main()
 
  //Generate Question
  quesGen();
-
+ 
  //Game is Live
- while(gameStat)
+
+ do
  {
   char op;
   int r,c;
   displayBoard();
+  /*for(int i =0; i < rowSize; i++){
+   for(int j =0; j < colSize; j++){
+     printf("|%2c ",mineLayout[i][j]);
+    }
+     printf("|\n");
+    }*/
   printf("Enter the cell([d/f] row col) : ");
   fflush(stdin);
   scanf("%c%d%d",&op,&r,&c);
   operateMine(op,r,c);
- }
+ }while(gameStat);
 }
