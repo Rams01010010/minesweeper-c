@@ -1,4 +1,6 @@
 #include<stdio.h>
+#include<stdlib.h>
+#include<time.h>
 
 //Global Vars
 int rowSize=8;
@@ -10,12 +12,43 @@ char groundLayout[20][20];
 void quesGen()
 {
  int i,j;
+ int rr,rc,minecnt;
+
+ srand(time(NULL));
+ minecnt = (15.65*(rowSize*colSize))/100;
+
+ for(i = 0; i < minecnt; i++)
+ {
+  rr = rand()%rowSize;
+  rc = rand()%colSize;
+  mineLayout[rr][rc] = '*';
+ }
+
  for(i = 0; i < rowSize; i++)
  {
   for(j = 0; j < colSize; j++)
   {
-   mineLayout[i][j] = ' ';
-   groundLayout[i][j] = ' ';
+   mineLayout[i][j] = (mineLayout[i][j] == '*') ? '*' : ' ';
+   if(mineLayout[i][j] == ' ')
+   {
+    int rmx,rmy,cmx,cmy,x,y,mineCount=0;
+    rmx = (i == 0) ? i : i-1;
+    rmy = (i == (rowSize-1)) ? (rowSize-1) : i+1;
+    cmx = (j == 0) ? j : j-1;
+    cmy = (j == (colSize-1)) ? (colSize-1) : j+1;
+    for(x = rmx; x <= rmy; x++)
+    {
+    for(y = cmx; y <= cmy; y++)
+     {
+      if(mineLayout[x][y] == '*' &&  !(x==i && y==j))
+      {
+       mineCount++;
+      }
+     }
+    }
+    mineLayout[i][j] = (mineCount != 0) ? 48+mineCount : '-';
+   }
+   groundLayout[i][j] = mineLayout[i][j];
   }
  }
 }
@@ -55,8 +88,9 @@ void operateMine(char op,int r,int c)
  if(op == 'f' && groundLayout[r][c] == ' ')
   groundLayout[r][c] = 'f';
  else if(op == 'd' && groundLayout[r][c] == ' ')
+ {
   groundLayout[r][c] = mineLayout[r][c];
-
+ }
  displayBoard(); 
 }
 
