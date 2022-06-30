@@ -5,53 +5,8 @@
 //Global Vars
 int rowSize=8;
 int colSize=8;
-int gameStat=1;
 char mineLayout[20][20];
 char groundLayout[20][20];
-
-void quesGen()
-{
- int i,j;
- int rr,rc,minecnt;
-
- srand(time(NULL));
- minecnt = (15.65*(rowSize*colSize))/100;
-
- for(i = 0; i < minecnt; i++)
- {
-  rr = rand()%rowSize;
-  rc = rand()%colSize;
-  mineLayout[rr][rc] = '*';
- }
-
- for(i = 0; i < rowSize; i++)
- {
-  for(j = 0; j < colSize; j++)
-  {
-   mineLayout[i][j] = (mineLayout[i][j] == '*') ? '*' : ' ';
-   if(mineLayout[i][j] == ' ')
-   {
-    int rmx,rmy,cmx,cmy,x,y,mineCount=0;
-    rmx = (i == 0) ? i : i-1;
-    rmy = (i == (rowSize-1)) ? (rowSize-1) : i+1;
-    cmx = (j == 0) ? j : j-1;
-    cmy = (j == (colSize-1)) ? (colSize-1) : j+1;
-    for(x = rmx; x <= rmy; x++)
-    {
-    for(y = cmx; y <= cmy; y++)
-     {
-      if(mineLayout[x][y] == '*' &&  !(x==i && y==j))
-      {
-       mineCount++;
-      }
-     }
-    }
-    mineLayout[i][j] = (mineCount != 0) ? 48+mineCount : '~';
-   }
-   groundLayout[i][j] = ' ';
-  }
- }
-}
 
 void displayBoard()
 {
@@ -82,22 +37,52 @@ void displayBoard()
  }
 }
 
-void operateMine(char op,int r,int c)
+void quesGen(int r,int c)
 {
- if(op == 'f' && groundLayout[r][c] == ' ')
-  groundLayout[r][c] = 'f';
- else if(op == 'd' && groundLayout[r][c] == ' ')
+ int i,j;
+ int rr,rc,minecnt;
+ srand(time(NULL));
+ minecnt = (15.65*(rowSize*colSize))/100;
+ 
+ i=j=0;
+ while(j<minecnt)
  {
-  if(mineLayout[r][c] == '~')
+  rr = rand()%rowSize;
+  rc = rand()%colSize;
+  if(mineLayout[rr][rc] == ' ' && !(rr == r && rc == c))
   {
-   openEmptySpots(r,c);
-  }
-  else
-  {
-   groundLayout[r][c] = mineLayout[r][c];
+   mineLayout[rr][rc] = '*';
+   j++;
   }
  }
- displayBoard(); 
+
+ for(i = 0; i < rowSize; i++)
+ {
+  for(j = 0; j < colSize; j++)
+  {
+   mineLayout[i][j] = (mineLayout[i][j] == '*') ? '*' : ' ';
+   if(mineLayout[i][j] == ' ')
+   {
+    int rmx,rmy,cmx,cmy,x,y,mineCount=0;
+    rmx = (i == 0) ? i : i-1;
+    rmy = (i == (rowSize-1)) ? (rowSize-1) : i+1;
+    cmx = (j == 0) ? j : j-1;
+    cmy = (j == (colSize-1)) ? (colSize-1) : j+1;
+    for(x = rmx; x <= rmy; x++)
+    {
+    for(y = cmx; y <= cmy; y++)
+     {
+      if(mineLayout[x][y] == '*' &&  !(x==i && y==j))
+      {
+       mineCount++;
+      }
+     }
+    }
+    mineLayout[i][j] = (mineCount != 0) ? 48+mineCount : '~';
+   }
+   groundLayout[i][j] = ' ';
+  }
+ }
 }
 
 void openEmptySpots(int r, int c)
@@ -132,9 +117,65 @@ void openEmptySpots(int r, int c)
  }
 }
  
+void operateMine(char op,int r,int c)
+{
+ if(op == 'f')
+ { 
+  if(groundLayout[r][c] == ' ')
+    groundLayout[r][c] = 'f';
+  else if(groundLayout[r][c] == 'f')
+    groundLayout[r][c] = ' ';
+ }
+ else if(op == 'd' && groundLayout[r][c] == ' ')
+ {
+  if(mineLayout[r][c] == '~')
+  {
+   openEmptySpots(r,c);
+  }
+  else
+  {
+   groundLayout[r][c] = mineLayout[r][c];
+  }
+ }
+ displayBoard(); 
+}
+
+int checkGameStatus()
+{
+ int i,j,mines,mc=0;
+ mines = (15.65*rowSize*colSize)/100;
+ for(i = 0; i < rowSize; i++)
+ {
+  for(j = 0; j < colSize; j++)
+  {
+   if(groundLayout[i][j] == '*')
+   {
+    printf("\n\n\t+-----------------+");
+      printf("\n\t|    GAME OVER    |");
+      printf("\n\t+-----------------+\n");
+    return 0;
+   }
+   if(groundLayout[i][j] == 'f' && mineLayout[i][j] == '*')
+   {
+    mc++;
+   }
+  }
+ }
+ if(mc == mines)
+ {
+  printf("\n\n\t+--------------------------+");
+    printf("\n\t|    YOU WON THE GAME !    |");
+    printf("\n\t+--------------------------+\n");
+  return 0;
+ }
+ else
+  return 1;
+}
+
 int main()
 {
- char ch;
+ char ch,op;
+ int i,j,r,c,flag=-1;
  printf("\tMinesweeper!\n");
  printf("Use Default Board Size(8x8)? [y/n] : ");
  scanf("%c",&ch);
@@ -145,25 +186,30 @@ int main()
  }
  printf("Size : %dx%d\n",rowSize,colSize);
 
- //Generate Question
- quesGen();
- 
+ for(i = 0; i < rowSize; i++)
+ {
+  for(j = 0; j < colSize; j++){
+   mineLayout[i][j] = ' ';
+   groundLayout[i][j] = ' ';
+  }
+ }
  //Game is Live
-
  do
  {
-  char op;
-  int r,c;
   displayBoard();
-  /*for(int i =0; i < rowSize; i++){
+  for(int i =0; i < rowSize; i++){
    for(int j =0; j < colSize; j++){
      printf("|%2c ",mineLayout[i][j]);
     }
      printf("|\n");
-    }*/
-  printf("Enter the cell([d/f] row col) : ");
-  fflush(stdin);
-  scanf("%c%d%d",&op,&r,&c);
+    }
+  printf("Enter the cell( [d/f] row col) : ");
+  scanf(" %c%d%d",&op,&r,&c);
+  if(flag==-1)
+  {
+   flag = 0;
+   quesGen(r,c);
+  }
   operateMine(op,r,c);
- }while(gameStat);
+ }while(checkGameStatus());
 }
