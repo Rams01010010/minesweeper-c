@@ -174,6 +174,7 @@ int checkGameStatus()
 
 int main()
 {
+start : 
  char ch,op;
  int i,j,r,c,flag=-1;
  printf("\tMinesweeper!\n");
@@ -197,12 +198,6 @@ int main()
  do
  {
   displayBoard();
-  for(int i =0; i < rowSize; i++){
-   for(int j =0; j < colSize; j++){
-     printf("|%2c ",mineLayout[i][j]);
-    }
-     printf("|\n");
-    }
   printf("Enter the cell( [d/f] row col) : ");
   scanf(" %c%d%d",&op,&r,&c);
   if(flag==-1)
@@ -212,4 +207,8 @@ int main()
   }
   operateMine(op,r,c);
  }while(checkGameStatus());
+ printf("\nPlay Again ? [y/n]: ");
+ scanf(" %c",&ch);
+ if(ch == 'y')
+  goto start;
 }
